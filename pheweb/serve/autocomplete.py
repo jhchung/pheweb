@@ -48,18 +48,14 @@ class Autocompleter(object):
     def autocomplete(self, query:str) -> List[Dict[str,str]]:
         query = query.strip()
 
-        if conf.overrides.get('search_n'):
-            search_n = conf.overrides.get('search_n')
-        else:
-            search_n = 10
         result = []
         for autocompleter in self._autocompleters:
-            if conf.overrides.get('search_all'):
+            if conf.get_search_all():
                 # Combine the different search results
-                result.extend(list(itertools.islice(autocompleter(query), 0, search_n)))
+                result.extend(list(itertools.islice(autocompleter(query), 0, conf.get_search_n())))
             else:
                 # Return only first matching autocompleter category
-                result = list(itertools.islice(autocompleter(query), 0, search_n))
+                result = list(itertools.islice(autocompleter(query), 0, conf.get_search_n()))
                 if result: break
         return result
 
