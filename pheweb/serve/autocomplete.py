@@ -1,6 +1,7 @@
 
 from ..file_utils import get_filepath
 from .server_utils import parse_variant
+from .. import conf
 
 from flask import url_for
 
@@ -38,18 +39,28 @@ class Autocompleter(object):
         self._autocompleters = [
             self._autocomplete_rsid,  # Check rsid first, because it only runs if query.startswith('rs')
             self._autocomplete_variant,  # Check variant next, because it only runs if query starts with a chrom alias.
+            self._autocomplete_gene,  # Return gene before phecode
             self._autocomplete_phenocode,
-            self._autocomplete_gene,
         ]
         if any('phenostring' in pheno for pheno in self._phenos.values()):
             self._autocompleters.append(self._autocomplete_phenostring)
 
     def autocomplete(self, query:str) -> List[Dict[str,str]]:
         query = query.strip()
+
+        if conf.overrides.get('search_n'):
+            search_n = conf.overrides.get('search_n')
+        else:
+            search_n = 10
         result = []
         for autocompleter in self._autocompleters:
-            result = list(itertools.islice(autocompleter(query), 0, 10))
-            if result: break
+            if conf.overrides.get('search_all'):
+                # Combine the different search results
+                result.extend(list(itertools.islice(autocompleter(query), 0, search_n)))
+            else:
+                # Return only first matching autocompleter category
+                result = list(itertools.islice(autocompleter(query), 0, search_n))
+                if result: break
         return result
 
     def get_best_completion(self, query:str) -> Optional[Dict[str,str]]:
