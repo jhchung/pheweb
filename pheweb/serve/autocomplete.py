@@ -39,7 +39,7 @@ class Autocompleter(object):
         self._autocompleters = [
             self._autocomplete_rsid,  # Check rsid first, because it only runs if query.startswith('rs')
             self._autocomplete_variant,  # Check variant next, because it only runs if query starts with a chrom alias.
-            self._autocomplete_gene,  # Return gene before phecode
+            self._autocomplete_gene,  # Return gene before phecode in case phenotypes include a gene name
             self._autocomplete_phenocode,
         ]
         if any('phenostring' in pheno for pheno in self._phenos.values()):
